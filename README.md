@@ -19,10 +19,9 @@ js/main.js             Mobile nav toggle + footer year
 js/theme-switcher.js    Appearance panel logic + fetches the admin-set site default
 favicon.svg              Browser tab icon
 robots.txt / sitemap.xml
-_headers                 Cloudflare response headers (security headers, caching)
-wrangler.jsonc            Worker config — static assets + KV binding for /api/appearance
-worker/index.js            The Worker's server-side logic (GET/POST /api/appearance)
-.assetsignore               Excludes source/, scripts/, etc. from the public static assets
+_headers                 Cloudflare Pages response headers (security headers, caching)
+_worker.js                Pages "Advanced Mode" worker — handles GET/POST /api/appearance,
+                           falls through to static assets for everything else
 assets/img/            Headshot, generated OG image, apple touch icon
 assets/resume/          Downloadable résumé PDF (same file as source/, as confirmed)
 source/                 Original résumé PDF — source of truth for all content on the site
@@ -43,25 +42,33 @@ python -m http.server 8420
 Then open http://localhost:8420. (Opening `index.html` directly via `file://` will not
 work correctly, since the page uses root-relative asset paths like `/css/style.css`.)
 
-## Deploying to Cloudflare
+## Deploying to Cloudflare Pages
 
-This is now a **Worker with static assets** (Cloudflare's current model — what used to be
-called "Pages"), configured via `wrangler.jsonc`. It serves the static site directly, plus
-one small API route (`/api/appearance`) backed by Cloudflare KV so the `/admin` page can set
-a site-wide default theme/font. Every push to `main` redeploys automatically once Git is
-connected (Workers & Pages → this project → Settings → Git).
+This is a **Cloudflare Pages** project (Git-connected, `main` branch, no build command,
+build output = repo root). Every push to `main` redeploys automatically.
 
-**One-time setup** (only needed once, or if the KV binding/secret is ever reset):
+Server-side logic (the `/api/appearance` route) is handled via Pages' **Advanced Mode**:
+a `_worker.js` file at the repo root, which Pages automatically picks up and runs in front
+of the static assets — no separate build step or `wrangler.jsonc` needed. `_worker.js`
+handles `/api/appearance` itself and forwards every other request to `env.ASSETS`, which
+serves the static site exactly as before.
+
+**One-time setup** (only needed once, or if the KV binding/secret is ever reset) — all
+under this Pages project's **Settings** tab:
 
 1. Create a KV namespace: Cloudflare dashboard → **Storage & Databases → KV → Create**
    (name it e.g. `sanjula-appearance`).
-2. Bind it to this Worker: project → **Settings → Bindings → Add → KV Namespace**,
-   variable name `APPEARANCE_KV`, pointing at the namespace you just created. (Alternatively,
-   put the namespace's ID into `wrangler.jsonc`'s `kv_namespaces[0].id` and redeploy.)
-3. Set the admin password: project → **Settings → Variables and Secrets → Add** →
-   name `ADMIN_PASSWORD`, type **Secret**, value of your choosing. Never commit this value
-   to the repo.
-4. Custom domain: **Custom Domains** tab → add `sanjulabai.com`, once the first deploy succeeds.
+2. Bind it: **Settings → Bindings → Add → KV namespace**, variable name `APPEARANCE_KV`,
+   pointing at the namespace you just created. (Pages may label this section "Bindings" or
+   "Functions → KV namespace bindings" depending on dashboard version — same setting either way.)
+3. Set the admin password: **Settings → Variables and secrets → Add** → name
+   `ADMIN_PASSWORD`, type **Secret**/**Encrypt**, value of your choosing. Never commit this
+   value to the repo.
+4. Custom domain: **Custom domains** tab → add `sanjulabai.com`, once the first deploy succeeds.
+
+If `APPEARANCE_KV` isn't bound yet, `/api/appearance` degrades gracefully (`GET` returns an
+empty default, `POST` returns a clear 500 instead of crashing) — the rest of the site is
+unaffected either way, since only that one route is handled specially.
 
 ## Site-wide appearance default (`/admin`)
 

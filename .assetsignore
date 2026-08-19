@@ -1,9 +1,0 @@
-source/
-scripts/
-.claude/
-PORTFOLIO_BRIEF.md
-README.md
-.gitignore
-.assetsignore
-wrangler.jsonc
-worker/

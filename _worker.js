@@ -1,3 +1,8 @@
+// Cloudflare Pages "Advanced Mode" worker — this file at the repo root takes
+// over ALL routing for the Pages project. It handles the one API route this
+// site needs (GET/POST /api/appearance) and falls through to env.ASSETS for
+// everything else, which serves the static site exactly as before.
+
 const VALID_THEMES = [
   "boardroom-navy-light",
   "boardroom-navy-dark",
@@ -38,6 +43,9 @@ export default {
 
     if (url.pathname === "/api/appearance") {
       if (request.method === "GET") {
+        if (!env.APPEARANCE_KV) {
+          return json({ theme: null, font: null });
+        }
         const stored = await env.APPEARANCE_KV.get(KV_KEY, "json");
         return json(stored || { theme: null, font: null });
       }
@@ -45,6 +53,9 @@ export default {
       if (request.method === "POST") {
         if (!isAuthorized(request, env)) {
           return json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (!env.APPEARANCE_KV) {
+          return json({ error: "APPEARANCE_KV binding is not configured" }, { status: 500 });
         }
         let body;
         try {
