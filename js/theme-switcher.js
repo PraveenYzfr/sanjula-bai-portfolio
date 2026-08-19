@@ -94,4 +94,22 @@
   }
 
   syncSelections();
+
+  // Apply the site-wide admin default for visitors who haven't picked
+  // their own appearance yet. A personal choice always wins over this.
+  if (!storageGet("sb-theme") && !storageGet("sb-font")) {
+    fetch("/api/appearance", { cache: "no-store" })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        if (!storageGet("sb-theme") && data.theme) {
+          root.setAttribute("data-theme", data.theme);
+        }
+        if (!storageGet("sb-font") && data.font) {
+          root.setAttribute("data-font", data.font);
+        }
+        syncSelections();
+      })
+      .catch(function () {});
+  }
 })();

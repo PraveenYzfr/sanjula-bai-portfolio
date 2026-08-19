@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appearance Admin — Sanjula Bai</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root {
+    --bg: #0d1520; --panel: #16202f; --ink: #e9ecf2; --ink-soft: #b7c0d0; --ink-faint: #8a95a8;
+    --line: #263043; --accent: #d8ac4e; --accent-soft: #eecf8b; --danger: #e2685a; --ok: #6fbf8b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    min-height: 100vh; display: flex; align-items: flex-start; justify-content: center;
+    padding: 3rem 1.25rem;
+  }
+  main { width: 100%; max-width: 560px; }
+  h1 { font-size: 1.4rem; margin: 0 0 0.3rem; }
+  .sub { color: var(--ink-faint); font-size: 0.9rem; margin: 0 0 2rem; }
+  section {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 1.5rem; margin-bottom: 1.25rem;
+  }
+  label { display: block; font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 0.4rem; }
+  input[type="password"] {
+    width: 100%; padding: 0.6rem 0.75rem; border-radius: 4px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink); font-size: 0.95rem; margin-bottom: 0.9rem;
+  }
+  fieldset { border: 0; padding: 0; margin: 0 0 1.25rem; }
+  legend { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); padding: 0; margin: 0 0 0.6rem; }
+  .options { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.5rem; }
+  .options label {
+    display: flex; align-items: center; gap: 0.5rem; margin: 0;
+    border: 1px solid var(--line); border-radius: 4px; padding: 0.5rem 0.65rem;
+    font-size: 0.85rem; color: var(--ink); cursor: pointer; background: var(--bg);
+  }
+  .options label:has(input:checked) { border-color: var(--accent); outline: 1px solid var(--accent); }
+  .options input { margin: 0; }
+  button {
+    font-family: inherit; font-size: 0.92rem; font-weight: 600; padding: 0.65rem 1.2rem;
+    border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: #1a1204;
+    cursor: pointer;
+  }
+  button.secondary { background: transparent; color: var(--ink-soft); border-color: var(--line); font-weight: 500; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .status { font-size: 0.85rem; margin-top: 0.9rem; min-height: 1.2em; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--danger); }
+  .current { font-size: 0.85rem; color: var(--ink-faint); }
+  .current strong { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Site appearance default</h1>
+  <p class="sub">Sets the theme/typeface every first-time visitor sees. A visitor who manually changes appearance on the site keeps their own choice regardless of this setting.</p>
+
+  <section>
+    <p class="current" id="current-default">Loading current default…</p>
+  </section>
+
+  <section>
+    <label for="password">Admin password</label>
+    <input type="password" id="password" autocomplete="off" placeholder="Enter admin password">
+
+    <form id="appearance-form">
+      <fieldset>
+        <legend>Default theme</legend>
+        <div class="options" id="theme-options">
+          <label><input type="radio" name="theme" value=""> Auto (unset)</label>
+          <label><input type="radio" name="theme" value="boardroom-navy-light"> Boardroom Navy</label>
+          <label><input type="radio" name="theme" value="boardroom-navy-dark"> Boardroom Navy Dark</label>
+          <label><input type="radio" name="theme" value="ivory-classic"> Ivory Classic</label>
+          <label><input type="radio" name="theme" value="slate-graphite"> Slate Graphite</label>
+          <label><input type="radio" name="theme" value="midnight-emerald"> Midnight Emerald</label>
+          <label><input type="radio" name="theme" value="royal-indigo"> Royal Indigo</label>
+          <label><input type="radio" name="theme" value="warm-bronze"> Warm Bronze</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Default typeface</legend>
+        <div class="options" id="font-options">
+          <label><input type="radio" name="font" value=""> Auto (unset)</label>
+          <label><input type="radio" name="font" value="classic-serif"> Classic Serif</label>
+          <label><input type="radio" name="font" value="institutional-times"> Institutional Times</label>
+          <label><input type="radio" name="font" value="modern-sans"> Modern Sans</label>
+          <label><input type="radio" name="font" value="elegant-palatino"> Elegant Palatino</label>
+          <label><input type="radio" name="font" value="corporate-grotesk"> Corporate Grotesk</label>
+          <label><input type="radio" name="font" value="refined-cambria"> Refined Cambria</label>
+        </div>
+      </fieldset>
+
+      <div class="row">
+        <button type="submit">Save as site default</button>
+        <button type="button" class="secondary" id="refresh-btn">Refresh current value</button>
+      </div>
+      <p class="status" id="status"></p>
+    </form>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var currentEl = document.getElementById("current-default");
+  var statusEl = document.getElementById("status");
+  var form = document.getElementById("appearance-form");
+  var passwordEl = document.getElementById("password");
+  var refreshBtn = document.getElementById("refresh-btn");
+
+  function describe(data) {
+    if (!data || (!data.theme && !data.font)) return "Currently: no default set (visitors get Boardroom Navy, auto light/dark).";
+    return "Currently: theme = <strong>" + (data.theme || "unset") + "</strong>, font = <strong>" + (data.font || "unset") + "</strong>";
+  }
+
+  function loadCurrent() {
+    currentEl.textContent = "Loading current default…";
+    fetch("/api/appearance", { cache: "no-store" })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        currentEl.innerHTML = describe(data);
+        var themeVal = data && data.theme ? data.theme : "";
+        var fontVal = data && data.font ? data.font : "";
+        var themeInput = form.querySelector('input[name="theme"][value="' + themeVal + '"]');
+        var fontInput = form.querySelector('input[name="font"][value="' + fontVal + '"]');
+        if (themeInput) themeInput.checked = true;
+        if (fontInput) fontInput.checked = true;
+      })
+      .catch(function () {
+        currentEl.textContent = "Could not load current default.";
+      });
+  }
+
+  refreshBtn.addEventListener("click", loadCurrent);
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var password = passwordEl.value;
+    if (!password) {
+      statusEl.textContent = "Enter the admin password first.";
+      statusEl.className = "status err";
+      return;
+    }
+    var theme = form.querySelector('input[name="theme"]:checked');
+    var font = form.querySelector('input[name="font"]:checked');
+    statusEl.textContent = "Saving…";
+    statusEl.className = "status";
+
+    fetch("/api/appearance", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + password,
+      },
+      body: JSON.stringify({
+        theme: theme && theme.value ? theme.value : null,
+        font: font && font.value ? font.value : null,
+      }),
+    })
+      .then(function (res) {
+        if (res.status === 401) throw new Error("Wrong password.");
+        if (!res.ok) throw new Error("Save failed (" + res.status + ").");
+        return res.json();
+      })
+      .then(function (data) {
+        statusEl.textContent = "Saved.";
+        statusEl.className = "status ok";
+        currentEl.innerHTML = describe(data);
+      })
+      .catch(function (err) {
+        statusEl.textContent = err.message || "Save failed.";
+        statusEl.className = "status err";
+      });
+  });
+
+  loadCurrent();
+})();
+</script>
+</body>
+</html>
