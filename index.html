@@ -31,6 +31,17 @@
 
 <link rel="stylesheet" href="/css/style.css">
 
+<script>
+(function () {
+  try {
+    var theme = localStorage.getItem("sb-theme");
+    var font = localStorage.getItem("sb-font");
+    if (theme) document.documentElement.setAttribute("data-theme", theme);
+    if (font) document.documentElement.setAttribute("data-font", font);
+  } catch (e) {}
+})();
+</script>
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -43,7 +54,7 @@
     "@type": "Organization",
     "name": "IBM"
   },
-  "email": "mailto:sanjulabai@gmail.com",
+  "email": "mailto:contact@sanjulabai.com",
   "sameAs": [
     "https://www.linkedin.com/in/sanjulabai/"
   ],
@@ -111,6 +122,9 @@
       <a href="#competencies">Competencies</a>
       <a href="#education">Education</a>
       <a href="#contact" class="nav-cta">Contact</a>
+      <button class="appearance-toggle" type="button" aria-haspopup="dialog" aria-controls="appearance-panel" aria-expanded="false">
+        <span aria-hidden="true">🎨</span> Appearance
+      </button>
     </nav>
   </div>
 </header>
@@ -122,7 +136,7 @@
       <div>
         <p class="hero-eyebrow">Board Director &amp; Risk Executive</p>
         <h1>Sanjula Bai</h1>
-        <p class="role-line">Global Risk &amp; Compliance Executive<span class="sep">·</span>Certified Independent Director <span style="color:var(--ink-faint); font-weight:500;">(IICA, Ministry of Corporate Affairs, GoI)</span></p>
+        <p class="role-line">Global Risk &amp; Compliance Executive<span class="sep">·</span>Certified Independent Director <span class="credential">(IICA, Ministry of Corporate Affairs, GoI)</span></p>
         <p class="positioning">24+ years turning multi-jurisdictional regulatory complexity into high-performing, board-ready governance — across Wells Fargo, Bank of America, Barclays, BNP Paribas, and Mizuho, spanning the US, UK, Europe, and Southeast Asia.</p>
         <p class="hero-meta">
           <span>📍 Chennai, Tamil Nadu, India</span>
@@ -385,10 +399,15 @@
           <span class="value">linkedin.com/in/sanjulabai</span>
           <span class="hint">Connect or send a message directly</span>
         </a>
-        <a class="contact-card" href="mailto:sanjulabai@gmail.com">
+        <a class="contact-card" href="mailto:contact@sanjulabai.com">
           <span class="kicker">Email</span>
-          <span class="value">sanjulabai@gmail.com</span>
+          <span class="value">contact@sanjulabai.com</span>
           <span class="hint">For board and committee inquiries</span>
+        </a>
+        <a class="contact-card" href="mailto:sanjulabai@gmail.com">
+          <span class="kicker">Alternate Email</span>
+          <span class="value">sanjulabai@gmail.com</span>
+          <span class="hint">Personal inbox</span>
         </a>
         <a class="contact-card" href="/assets/resume/Sanjula-Bai-Resume.pdf" download>
           <span class="kicker">Résumé</span>
@@ -404,10 +423,77 @@
 <footer class="site-footer">
   <div class="wrap">
     <span>© <span id="year">2026</span> Sanjula Bai. All rights reserved.</span>
-    <span><a href="https://www.linkedin.com/in/sanjulabai/" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:sanjulabai@gmail.com">Email</a></span>
+    <span><a href="https://www.linkedin.com/in/sanjulabai/" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:contact@sanjulabai.com">Email</a></span>
   </div>
 </footer>
 
+<div class="appearance-panel" id="appearance-panel" role="dialog" aria-label="Appearance settings" aria-modal="false">
+  <button class="panel-close" type="button" aria-label="Close appearance settings">✕</button>
+  <h2>Appearance</h2>
+  <p class="panel-sub">Choose a theme and typeface. Saved on this device only.</p>
+
+  <fieldset>
+    <legend>Theme</legend>
+    <div class="theme-options" id="theme-options">
+      <label class="theme-option" data-theme-option="boardroom-navy-light">
+        <input type="radio" name="sb-theme" value="boardroom-navy-light">
+        <span class="swatch" style="background:#0b1c33"></span> Boardroom Navy
+      </label>
+      <label class="theme-option" data-theme-option="boardroom-navy-dark">
+        <input type="radio" name="sb-theme" value="boardroom-navy-dark">
+        <span class="swatch" style="background:#060e1c"></span> Boardroom Navy Dark
+      </label>
+      <label class="theme-option" data-theme-option="ivory-classic">
+        <input type="radio" name="sb-theme" value="ivory-classic">
+        <span class="swatch" style="background:#5c1a1a"></span> Ivory Classic
+      </label>
+      <label class="theme-option" data-theme-option="slate-graphite">
+        <input type="radio" name="sb-theme" value="slate-graphite">
+        <span class="swatch" style="background:#20262d"></span> Slate Graphite
+      </label>
+      <label class="theme-option" data-theme-option="midnight-emerald">
+        <input type="radio" name="sb-theme" value="midnight-emerald">
+        <span class="swatch" style="background:#04100b"></span> Midnight Emerald
+      </label>
+      <label class="theme-option" data-theme-option="royal-indigo">
+        <input type="radio" name="sb-theme" value="royal-indigo">
+        <span class="swatch" style="background:#0b0920"></span> Royal Indigo
+      </label>
+      <label class="theme-option" data-theme-option="warm-bronze">
+        <input type="radio" name="sb-theme" value="warm-bronze">
+        <span class="swatch" style="background:#5a3418"></span> Warm Bronze
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Typeface</legend>
+    <div class="font-options" id="font-options">
+      <label class="font-option" data-font-option="classic-serif">
+        <span>Classic Serif</span><input type="radio" name="sb-font" value="classic-serif"><span class="sample" style="font-family:Georgia, serif;">Aa</span>
+      </label>
+      <label class="font-option" data-font-option="institutional-times">
+        <span>Institutional Times</span><input type="radio" name="sb-font" value="institutional-times"><span class="sample" style="font-family:'Times New Roman', serif;">Aa</span>
+      </label>
+      <label class="font-option" data-font-option="modern-sans">
+        <span>Modern Sans</span><input type="radio" name="sb-font" value="modern-sans"><span class="sample" style="font-family:'Segoe UI', sans-serif;">Aa</span>
+      </label>
+      <label class="font-option" data-font-option="elegant-palatino">
+        <span>Elegant Palatino</span><input type="radio" name="sb-font" value="elegant-palatino"><span class="sample" style="font-family:'Palatino Linotype', serif;">Aa</span>
+      </label>
+      <label class="font-option" data-font-option="corporate-grotesk">
+        <span>Corporate Grotesk</span><input type="radio" name="sb-font" value="corporate-grotesk"><span class="sample" style="font-family:Arial, sans-serif;">Aa</span>
+      </label>
+      <label class="font-option" data-font-option="refined-cambria">
+        <span>Refined Cambria</span><input type="radio" name="sb-font" value="refined-cambria"><span class="sample" style="font-family:Cambria, serif;">Aa</span>
+      </label>
+    </div>
+  </fieldset>
+
+  <button class="reset-btn" type="button" id="appearance-reset">Reset to default</button>
+</div>
+
 <script src="/js/main.js"></script>
+<script src="/js/theme-switcher.js"></script>
 </body>
 </html>
