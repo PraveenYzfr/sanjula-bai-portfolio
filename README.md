@@ -13,7 +13,9 @@ CDNs or hosted fonts (system font stack only). Every fact on the page is sourced
 
 ```
 index.html          Single-page site (all sections)
-admin/index.html      Password-gated page to set the site-wide default theme/font
+sb-admin-5fb3c4a3/index.html  Password-gated site-settings page (theme/font default,
+                               résumé-download toggle) — path is deliberately obscure,
+                               not linked anywhere; treat the path itself as semi-secret
 css/style.css          Styles — theme tokens (7 themes) + font pairings (6), see js/theme-switcher.js
 js/main.js             Mobile nav toggle + footer year
 js/theme-switcher.js    Appearance panel logic + fetches the admin-set site default
@@ -70,16 +72,25 @@ If `APPEARANCE_KV` isn't bound yet, `/api/appearance` degrades gracefully (`GET`
 empty default, `POST` returns a clear 500 instead of crashing) — the rest of the site is
 unaffected either way, since only that one route is handled specially.
 
-## Site-wide appearance default (`/admin`)
+## Site settings (`/sb-admin-5fb3c4a3/`)
 
-`/admin` is a password-gated page (not linked from the public site) that sets the theme and
-typeface every **first-time** visitor sees. It calls `POST /api/appearance` with the
-`ADMIN_PASSWORD` secret as a bearer token, which writes to KV.
+A password-gated page (not linked from the public site, and its path is deliberately an
+unguessable random slug rather than `/admin` — reduces automated scanning, but is obscurity,
+not real access control; don't treat the path as the actual security boundary) that sets:
 
-Visitors who use the 🎨 Appearance panel on the main site always keep their own choice
-(stored in their browser's `localStorage`) — the admin default only affects people who
-haven't customized anything yet. This is basic-auth-level protection (a single shared
-password checked server-side), fine for a low-stakes internal control, not enterprise auth.
+- The default theme/typeface every **first-time** visitor sees. Visitors who use the 🎨
+  Appearance panel on the main site always keep their own choice (stored in their browser's
+  `localStorage`) — the admin default only affects people who haven't customized anything yet.
+- Whether the résumé download is enabled site-wide (applies to every visitor, no override).
+
+It calls `POST /api/appearance` with the `ADMIN_PASSWORD` secret as a bearer token, which
+writes to KV. The endpoint rate-limits failed attempts (8 per IP / 15 minutes) — see
+`_worker.js`. This is still basic-auth-level protection (one shared password), fine for a
+low-stakes internal control, not enterprise auth. If you ever want real per-person login,
+Cloudflare Access can be put in front of this path from the dashboard without a code change.
+
+**If you ever want to change this path**: rename the `sb-admin-5fb3c4a3/` folder to a new
+random slug (`openssl rand -hex 4` or similar) and update this README to match.
 
 ## Content updates
 
