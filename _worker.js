@@ -23,6 +23,8 @@ const VALID_FONTS = [
 ];
 
 const KV_KEY = "site-default-appearance";
+const RATE_LIMIT_MAX_ATTEMPTS = 8;
+const RATE_LIMIT_WINDOW_SECONDS = 15 * 60;
 
 function json(data, init) {
   return new Response(JSON.stringify(data), {
@@ -31,10 +33,44 @@ function json(data, init) {
   });
 }
 
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
 function isAuthorized(request, env) {
   const auth = request.headers.get("Authorization") || "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
-  return Boolean(env.ADMIN_PASSWORD) && token === env.ADMIN_PASSWORD;
+  return Boolean(env.ADMIN_PASSWORD) && timingSafeEqual(token, env.ADMIN_PASSWORD);
+}
+
+function rateLimitKey(request) {
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  return "ratelimit:" + ip;
+}
+
+async function isRateLimited(request, env) {
+  if (!env.APPEARANCE_KV) return false;
+  const raw = await env.APPEARANCE_KV.get(rateLimitKey(request));
+  const count = raw ? parseInt(raw, 10) : 0;
+  return count >= RATE_LIMIT_MAX_ATTEMPTS;
+}
+
+async function recordFailedAttempt(request, env) {
+  if (!env.APPEARANCE_KV) return;
+  const key = rateLimitKey(request);
+  const raw = await env.APPEARANCE_KV.get(key);
+  const count = raw ? parseInt(raw, 10) : 0;
+  await env.APPEARANCE_KV.put(key, String(count + 1), { expirationTtl: RATE_LIMIT_WINDOW_SECONDS });
+}
+
+async function clearFailedAttempts(request, env) {
+  if (!env.APPEARANCE_KV) return;
+  await env.APPEARANCE_KV.delete(rateLimitKey(request));
 }
 
 export default {
@@ -55,9 +91,17 @@ export default {
       }
 
       if (request.method === "POST") {
+        if (await isRateLimited(request, env)) {
+          return json(
+            { error: "Too many failed attempts. Try again in a few minutes." },
+            { status: 429 }
+          );
+        }
         if (!isAuthorized(request, env)) {
+          await recordFailedAttempt(request, env);
           return json({ error: "Unauthorized" }, { status: 401 });
         }
+        await clearFailedAttempts(request, env);
         if (!env.APPEARANCE_KV) {
           return json({ error: "APPEARANCE_KV binding is not configured" }, { status: 500 });
         }
