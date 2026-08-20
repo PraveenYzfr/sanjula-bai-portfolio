@@ -410,6 +410,16 @@ a { color: inherit; }
   background: rgba(255,255,255,0.08);
 }
 
+[data-resume-link].is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+[data-resume-link].is-disabled:hover,
+[data-resume-link].is-disabled:focus-visible {
+  border-color: inherit;
+  background: inherit;
+}
+
 .hero-photo {
   width: 190px;
   height: 190px;
@@ -913,6 +923,56 @@ section#competencies { background: var(--panel); }
 }
 .site-footer a { color: var(--accent-soft); text-decoration: none; }
 .site-footer a:hover, .site-footer a:focus-visible { text-decoration: underline; }
+
+/* ---------- Scroll nav (back-to-top / jump-to-contact) ---------- */
+
+.scroll-nav {
+  position: fixed;
+  z-index: 190;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.scroll-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  opacity: 1;
+  transform: translateY(0);
+}
+.scroll-btn:hover, .scroll-btn:focus-visible {
+  border-color: var(--accent-strong);
+  color: var(--accent);
+}
+.scroll-btn.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+
+@media (max-width: 760px) {
+  .scroll-nav { left: 0.85rem; bottom: 0.85rem; }
+  .scroll-btn { width: 50px; height: 50px; font-size: 1.3rem; }
+  .scroll-nav.is-panel-open { opacity: 0; pointer-events: none; }
+}
+
+@media print {
+  .scroll-nav { display: none; }
+}
 
 /* ---------- Appearance panel ---------- */
 

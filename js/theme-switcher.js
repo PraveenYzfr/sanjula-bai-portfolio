@@ -8,6 +8,7 @@
   var resetBtn = document.getElementById("appearance-reset");
   var themeInputs = panel ? panel.querySelectorAll('input[name="sb-theme"]') : [];
   var fontInputs = panel ? panel.querySelectorAll('input[name="sb-font"]') : [];
+  var scrollNav = document.getElementById("scroll-nav");
 
   function storageGet(key) {
     try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -34,12 +35,14 @@
     if (!panel) return;
     panel.classList.add("is-open");
     toggleBtn.setAttribute("aria-expanded", "true");
+    if (scrollNav) scrollNav.classList.add("is-panel-open");
     syncSelections();
   }
   function closePanel() {
     if (!panel) return;
     panel.classList.remove("is-open");
     toggleBtn.setAttribute("aria-expanded", "false");
+    if (scrollNav) scrollNav.classList.remove("is-panel-open");
   }
 
   if (toggleBtn && panel) {
@@ -95,21 +98,36 @@
 
   syncSelections();
 
-  // Apply the site-wide admin default for visitors who haven't picked
-  // their own appearance yet. A personal choice always wins over this.
-  if (!storageGet("sb-theme") && !storageGet("sb-font")) {
-    fetch("/api/appearance", { cache: "no-store" })
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (data) {
-        if (!data) return;
-        if (!storageGet("sb-theme") && data.theme) {
-          root.setAttribute("data-theme", data.theme);
-        }
-        if (!storageGet("sb-font") && data.font) {
-          root.setAttribute("data-font", data.font);
-        }
-        syncSelections();
-      })
-      .catch(function () {});
+  function disableResumeLinks() {
+    document.querySelectorAll("[data-resume-link]").forEach(function (link) {
+      link.classList.add("is-disabled");
+      link.setAttribute("aria-disabled", "true");
+      link.title = "Résumé download is currently unavailable";
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+      });
+    });
+    var hint = document.querySelector("[data-resume-hint]");
+    if (hint) hint.textContent = "Currently unavailable";
   }
+
+  // Site-wide settings: admin-set default theme/font (a visitor's own
+  // choice always wins over this) and whether résumé download is enabled
+  // (applies to every visitor equally — not something to personally override).
+  fetch("/api/appearance", { cache: "no-store" })
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) {
+      if (!data) return;
+      if (!storageGet("sb-theme") && data.theme) {
+        root.setAttribute("data-theme", data.theme);
+      }
+      if (!storageGet("sb-font") && data.font) {
+        root.setAttribute("data-font", data.font);
+      }
+      syncSelections();
+      if (data.resumeDownloadEnabled === false) {
+        disableResumeLinks();
+      }
+    })
+    .catch(function () {});
 })();

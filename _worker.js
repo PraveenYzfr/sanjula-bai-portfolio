@@ -44,10 +44,14 @@ export default {
     if (url.pathname === "/api/appearance") {
       if (request.method === "GET") {
         if (!env.APPEARANCE_KV) {
-          return json({ theme: null, font: null });
+          return json({ theme: null, font: null, resumeDownloadEnabled: true });
         }
         const stored = await env.APPEARANCE_KV.get(KV_KEY, "json");
-        return json(stored || { theme: null, font: null });
+        return json({
+          theme: (stored && stored.theme) || null,
+          font: (stored && stored.font) || null,
+          resumeDownloadEnabled: !stored || stored.resumeDownloadEnabled !== false,
+        });
       }
 
       if (request.method === "POST") {
@@ -71,7 +75,10 @@ export default {
         if (font !== null && !VALID_FONTS.includes(font)) {
           return json({ error: "Invalid font: " + font }, { status: 400 });
         }
-        const value = { theme, font };
+        if (typeof body.resumeDownloadEnabled !== "boolean") {
+          return json({ error: "resumeDownloadEnabled must be true or false" }, { status: 400 });
+        }
+        const value = { theme, font, resumeDownloadEnabled: body.resumeDownloadEnabled };
         await env.APPEARANCE_KV.put(KV_KEY, JSON.stringify(value));
         return json({ ok: true, ...value });
       }

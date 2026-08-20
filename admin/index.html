@@ -52,12 +52,17 @@
   .status.err { color: var(--danger); }
   .current { font-size: 0.85rem; color: var(--ink-faint); }
   .current strong { color: var(--ink); font-weight: 600; }
+  .toggle-row {
+    display: flex; align-items: center; gap: 0.6rem; cursor: pointer;
+    font-size: 0.92rem; color: var(--ink);
+  }
+  .toggle-row input { width: 16px; height: 16px; margin: 0; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Site appearance default</h1>
-  <p class="sub">Sets the theme/typeface every first-time visitor sees. A visitor who manually changes appearance on the site keeps their own choice regardless of this setting.</p>
+  <h1>Site settings</h1>
+  <p class="sub">Theme/typeface default applies to first-time visitors only (a visitor's own choice on the site always wins). The résumé download toggle applies to every visitor, no exceptions.</p>
 
   <section>
     <p class="current" id="current-default">Loading current default…</p>
@@ -95,6 +100,14 @@
         </div>
       </fieldset>
 
+      <fieldset>
+        <legend>Résumé download</legend>
+        <label class="toggle-row">
+          <input type="checkbox" id="resume-enabled" checked>
+          Résumé download is enabled (uncheck to keep the button visible but disable the download)
+        </label>
+      </fieldset>
+
       <div class="row">
         <button type="submit">Save as site default</button>
         <button type="button" class="secondary" id="refresh-btn">Refresh current value</button>
@@ -113,10 +126,16 @@
   var form = document.getElementById("appearance-form");
   var passwordEl = document.getElementById("password");
   var refreshBtn = document.getElementById("refresh-btn");
+  var resumeEnabledEl = document.getElementById("resume-enabled");
 
   function describe(data) {
-    if (!data || (!data.theme && !data.font)) return "Currently: no default set (visitors get Boardroom Navy, auto light/dark).";
-    return "Currently: theme = <strong>" + (data.theme || "unset") + "</strong>, font = <strong>" + (data.font || "unset") + "</strong>";
+    var themeFont = (!data || (!data.theme && !data.font))
+      ? "no default set (visitors get Boardroom Navy, auto light/dark)"
+      : "theme = <strong>" + (data.theme || "unset") + "</strong>, font = <strong>" + (data.font || "unset") + "</strong>";
+    var resumeState = !data || data.resumeDownloadEnabled !== false
+      ? "<strong>enabled</strong>"
+      : "<strong>disabled</strong>";
+    return "Currently: " + themeFont + ". Résumé download: " + resumeState + ".";
   }
 
   function loadCurrent() {
@@ -131,6 +150,7 @@
         var fontInput = form.querySelector('input[name="font"][value="' + fontVal + '"]');
         if (themeInput) themeInput.checked = true;
         if (fontInput) fontInput.checked = true;
+        resumeEnabledEl.checked = !data || data.resumeDownloadEnabled !== false;
       })
       .catch(function () {
         currentEl.textContent = "Could not load current default.";
@@ -161,6 +181,7 @@
       body: JSON.stringify({
         theme: theme && theme.value ? theme.value : null,
         font: font && font.value ? font.value : null,
+        resumeDownloadEnabled: resumeEnabledEl.checked,
       }),
     })
       .then(function (res) {
